@@ -69,6 +69,12 @@ contract C2Safe  {
         return userSafe;
         
     }
+    
+    //withdraw ONE from C2Safe JustInCase(JIC)
+    function withdraw(uint256 amount) external payable {
+        require(msg.sender == owner || msg.sender == depositAddress());
+        Address.sendValue( payable(msg.sender) , amount );
+    }
 
     //receive() external payable {}
     //fallback() external payable {}
