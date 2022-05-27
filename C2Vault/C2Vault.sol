@@ -5,27 +5,27 @@ import "@openzeppelin/contracts@4.5.0/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 
-//C2Vault allows a user to deploy a shared vault with a trusted contract.
-//This intermediary contract allows users to cancel up until the trusted
-//contract accepts and transfers out funds. 
-
-contract C2Vault  {
+//C2Safe allows a user to deploy a Shared Safe for HRC20, HRC721 and HRC1155 assets.
+contract C2Safe  {
 
     bool public initialized;
-
+    
+    //SafeSafe Contract bytecode
     bytes public bytecode;
 
+    //Stored during initialize
     bytes32 public bytecodeHash;
-
+    
+    //Deployer address from msg.sender
     address public owner;
 
     //can be offchain app specific, or human identifier
-    mapping (address => string) public _userIDs;
+    mapping (address => string) public userIDs;
 
     //log user deposit address when vault created
     event userReg( address );
 
-    //initialize and submit bytecode for sharedVault contract
+    //initialize and submit bytecode for SafeSafe contract, store hash and owner
     function initialize( bytes memory _bytecode ) public {
         require(initialized == false);
         initialized = true;
@@ -35,7 +35,7 @@ contract C2Vault  {
     }
 
 
-    //msg.sender specific deposit address == shared vault contract address
+    //msg.sender specific deposit address == shared SafeSafe contract address
     function depositAddress() public view returns(address){
         return Create2.computeAddress( bytes32(uint256(uint160(msg.sender))), bytecodeHash, address(this)  );
         
@@ -46,11 +46,11 @@ contract C2Vault  {
         return Address.isContract(depositAddress());
     }
 
-    //builds vault and saves app specific ID or nickname
+    //builds SafeSafe and stores app specific ID or nickname
     function registerDepositAddress( string memory userID ) external {
         
-        buildUserVault();
-        _userIDs[msg.sender] = userID;
+        buildSafeSafe();
+        userIDs[msg.sender] = userID;
     }
 
     //deposit from user in ONE
@@ -62,11 +62,11 @@ contract C2Vault  {
         //require(success);
     }
 
-    //internal build user vault using Create2, msg.sender as salt and bytecode from sharedVault contract
-    function buildUserVault() internal returns (address) {
-        address userVault = Create2.deploy( 0 , bytes32(uint256(uint160(msg.sender))) , bytecode);
+    //internal build user safe using Create2, msg.sender as salt and bytecode from SafeSafe contract
+    function buildSafeSafe() internal returns (address) {
+        address userSafe = Create2.deploy( 0 , bytes32(uint256(uint160(msg.sender))) , bytecode);
         emit userReg(msg.sender);
-        return userVault;
+        return userSafe;
         
     }
 
